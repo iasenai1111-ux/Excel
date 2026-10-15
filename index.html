@@ -36,6 +36,12 @@ button:disabled{cursor:not-allowed;opacity:.45}
 #studentName::placeholder,#studentClass::placeholder{color:#a5b7c9}
 details{margin-top:10px;padding:10px;border:1px solid #426580;border-radius:9px}summary{cursor:pointer;font-weight:700}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;animation:none!important}}
+.mini-label{margin:12px 0 7px;font-weight:800;color:#9be7fb}
+.mini-excel{display:grid;grid-template-columns:38px repeat(5,minmax(0,1fr));gap:1px;background:#58758c;border:2px solid #6c92ad;border-radius:10px;overflow:hidden;margin-bottom:10px}
+.mini-cell{background:#f7fcff;color:#1a354e;border-radius:0;border:0;min-height:38px;display:flex;justify-content:center;align-items:center;padding:3px;font:600 13px system-ui}
+.mini-cell.mini-head{background:#d8e6f2;font-weight:800}.mini-cell.mini-target{background:#ffe8a0;border:2px solid #c88f1b;font-size:18px}
+button.mini-cell:hover{background:#c7f7e9}button.mini-cell:focus-visible{outline:3px solid #007a81;outline-offset:-3px;z-index:1}
+.formula-tools{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}.formula-tools button{padding:8px 10px;min-width:35px;background:#284d6d;color:#fff;border:1px solid #6f9abb}
 </style></head><body><main>
 <header><div><h1>🎮 EXCEL <span>QUEST</span></h1><small>NÍVEL 1 • Aprenda jogando e praticando no Excel real</small></div><b class="tag" id="label">FASE 1 / 5</b></header>
 <section class="panel" style="margin-top:15px"><strong>👤 Identificação do aluno</strong><div class="actions"><label style="flex:2;min-width:210px">Nome completo<input id="studentName" type="text" placeholder="Seu nome completo" maxlength="90" autocomplete="name"></label><label style="flex:1;min-width:150px">Turma<input id="studentClass" type="text" placeholder="Ex.: Excel Básico A" maxlength="50"></label></div><small>Preencha antes de baixar a planilha. O nome e a turma ficarão no arquivo para o professor identificar sua atividade. Não publique sua planilha no GitHub.</small></section><section class="panel" style="margin-top:15px"><div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap"><strong>🗺️ Mapa da aventura — escolha uma fase liberada</strong><span id="pct">0% completo</span></div><div class="progressTrack"><div id="progressFill" class="progressFill"></div></div><div class="phases" id="phases" aria-label="Selecionar fase"></div><small>O progresso fica salvo somente neste navegador. Compartilhar o computador ou limpar os dados pode apagar o avanço. Cada aluno deve usar seu próprio perfil do navegador.</small></section>
@@ -45,8 +51,11 @@ details{margin-top:10px;padding:10px;border:1px solid #426580;border-radius:9px}
 <small>Movimente com setas ou W A S D. 🧑‍🚀 Você · 🪙 Moedas · 👾 Inimigos · 🚪 Porta. Recolha as moedas, resolva a fórmula e faça a atividade no Excel.</small>
 <div class="actions"><button class="alt" id="redo">↻ Reiniciar fase</button><button class="alt" id="new">⟲ Novo jogo</button><button class="alt" id="sound">🔊 Som: ligado</button></div><small id="saveState" role="status">Progresso local ativo</small></section>
 <aside class="panel"><h2 style="margin-top:0">🧠 Terminal das fórmulas</h2><div id="mission" class="notice green"></div>
-<table id="table"></table>
-<label for="formula">Digite a fórmula na célula marcada:</label><input id="formula" type="text" placeholder="=B2+C2" spellcheck="false">
+<div class="mini-label">📊 Mini-Excel — clique nas células para montar a fórmula</div>
+<div id="miniExcel" class="mini-excel" role="group" aria-label="Planilha de simulação interativa"></div>
+<div class="formula-tools" id="formulaTools" aria-label="Operações"><button type="button" data-token="=">=</button><button type="button" data-token="+">+</button><button type="button" data-token="-">−</button><button type="button" data-token="*">×</button><button type="button" data-token="/">÷</button><button type="button" data-token=":">:</button><button type="button" data-token="MÉDIA(">MÉDIA(</button><button type="button" data-token=")">)</button><button type="button" data-token="("> ( </button><button type="button" data-token="1-">1−</button><button type="button" data-token="AC">Limpar</button><button type="button" data-token="BACK">⌫</button></div>
+<small>Exemplo: clique em <b>=</b>, depois <b>B2</b>, <b>+</b> e <b>C2</b>. A fórmula aparecerá abaixo. Você também pode digitá-la.</small>
+<label for="formula">Sua fórmula:</label><input id="formula" type="text" placeholder="=B2+C2" spellcheck="false">
 <div class="actions"><button id="check">✓ Verificar</button><button class="alt" id="hint">💡 Dica</button></div>
 <div id="feedback" class="notice" aria-live="polite">Complete o desafio e as moedas para avançar.</div>
 <div class="notice gold"><strong>🖥️ Prática obrigatória no Excel real</strong>
@@ -70,10 +79,26 @@ function saveProgress(){try{localStorage.setItem(KEY,JSON.stringify({level,unloc
 function tone(freq=650){if(!soundOn)return;try{audioCtx=audioCtx||new(window.AudioContext||window.webkitAudioContext)();const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type="sine";o.frequency.value=freq;g.gain.value=.035;o.connect(g);g.connect(audioCtx.destination);o.start();o.stop(audioCtx.currentTime+.09)}catch(e){}}
 
 function free(x,y){return y>=0&&y<14&&x>=0&&x<20&&rows[y][x]!=="#"}
+
+function miniRender(){
+ const l=L[level], target=l.values.length===3?"E2":"D2",letters=["A","B","C","D","E"];
+ let h='<div class="mini-cell mini-head">◢</div>'+letters.map(z=>'<div class="mini-cell mini-head">'+z+'</div>').join("");
+ for(let r=1;r<=3;r++){h+='<div class="mini-cell mini-head">'+r+'</div>';
+ for(let j=0;j<5;j++){const ref=letters[j]+r;let v=(r===2&&j>=1&&j<=l.values.length)?l.values[j-1]:null;let isTarget=ref===target;h+='<button type="button" class="mini-cell '+(isTarget?'mini-target':'')+'" data-cell="'+ref+'" aria-label="Célula '+ref+(v!==null?', valor '+v:'')+'">'+(isTarget?'?':v===null?'':v)+'</button>'}}$("miniExcel").innerHTML=h;
+}
+function putToken(token){
+ let inp=$("formula"),before=inp.value;
+ if(token==="AC"){inp.value="";inp.focus();return}
+ if(token==="BACK"){inp.value=before.slice(0,-1);inp.focus();return}
+ if(token==="=" && before.startsWith("="))return;
+ inp.value+=token;inp.focus();inp.setSelectionRange(inp.value.length,inp.value.length);
+}
+$("miniExcel").addEventListener("click",e=>{const b=e.target.closest("[data-cell]");if(b)putToken(b.dataset.cell)});
+$("formulaTools").addEventListener("click",e=>{const b=e.target.closest("[data-token]");if(b)putToken(b.dataset.token)});
 function setup(){let l=L[level];px=1;py=1;correct=false;excel=false;got=0;blocked=false;hit=0;$("confirmed").checked=false;$("formula").value="";let spots=[];for(let y=1;y<13;y++)for(let x=1;x<19;x++)if(free(x,y)&&(x>3||y>4)&&!(x===18&&y===12))spots.push({x,y});spots.sort((a,b)=>((a.x*19+a.y*31+level*41)%127)-((b.x*19+b.y*31+level*41)%127));coins=spots.slice(0,l.coins);enemies=spots.slice(l.coins,l.coins+l.enemy);
 $("mission").innerHTML="<b>FASE "+(level+1)+" — "+l.title+"</b><p>"+l.description.replaceAll("D2",l.values.length===3?"E7":"D7").replaceAll("E2","E7")+"</p>";
-$("table").innerHTML="<tr>"+l.head.map(h=>"<th>"+h+"</th>").join("")+"</tr><tr><td>7</td>"+l.values.map(v=>"<td>"+v+"</td>").join("")+'<td class="cell">?</td></tr>';
-$("steps").innerHTML="<b>Passo a passo — FASE "+(level+1)+"</b><ol><li>Abra o arquivo baixado no Excel e selecione a aba <b>FASE "+(level+1)+"</b>.</li><li>Confira os valores nas células "+(l.values.length===3?"B7, C7 e D7":"B7 e C7")+".</li><li>Clique em <b>"+(l.values.length===3?"E7":"D7")+"</b> e digite <code>"+l.formula+"</code>.</li><li>Pressione <b>Enter</b> e veja se aparece <b>"+l.ans+"</b>.</li><li>Salve usando <b>Ctrl+S</b> e marque a confirmação abaixo.</li></ol>";
+miniRender();
+$("steps").innerHTML="<b>Passo a passo — FASE "+(level+1)+"</b><ol><li>Abra o arquivo baixado no Excel e selecione a aba <b>FASE "+(level+1)+"</b>.</li><li>Confira os valores nas células "+(l.values.length===3?"B7, C7 e D7":"B7 e C7")+".</li><li>Clique em <b>"+(l.values.length===3?"E7":"D7")+"</b> e digite <code>"+l.formula.replace(/2/g,"7")+"</code>.</li><li>Pressione <b>Enter</b> e veja se aparece <b>"+l.ans+"</b>.</li><li>Salve usando <b>Ctrl+S</b> e marque a confirmação abaixo.</li></ol>";
 $("feedback").textContent="Pegue as moedas, resolva a fórmula e complete a prática no Excel.";$("label").textContent="FASE "+(level+1)+" / 5";paint();stats()}
 function stats(){let l=L[level],open=correct&&excel&&got===l.coins;$("xp").textContent="⭐ "+xp+" XP";$("coins").textContent="🪙 "+got+"/"+l.coins;$("lives").textContent="❤️".repeat(Math.max(life,0))+"🖤".repeat(3-Math.max(life,0));$("door").textContent=open?"🔓 Porta liberada":"🔒 Porta fechada";$("phases").innerHTML=L.map((it,i)=>'<button type="button" data-phase="'+i+'" class="phase '+(i===level?"on":i>=completed?"":"done")+' '+(i>unlocked?"lock":"")+'" '+(i>unlocked?'disabled title="Conclua a fase anterior"':'')+'>'+(i<completed?"✅":i===level?"▶":i>unlocked?"🔒":"🎮")+' Fase '+(i+1)+'</button>').join("");$("pct").textContent=Math.round(completed/L.length*100)+"% completo";$("progressFill").style.width=(completed/L.length*100)+"%"}
 function emoji(ch,x,y){ctx.font="23px system-ui";ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(ch,x*32+16,y*32+16)}
@@ -84,8 +109,17 @@ function win(){xp+=50;completed=Math.max(completed,level+1);unlocked=Math.max(un
 function step(dx,dy){if(blocked||$("modal").open)return;let nx=px+dx,ny=py+dy;if(!free(nx,ny))return;if(nx===18&&ny===12){if(correct&&excel&&got===L[level].coins)win();else msg("🔒 Ainda faltam moedas, fórmula ou prática no Excel real.");return}px=nx;py=ny;let i=coins.findIndex(p=>p.x===px&&p.y===py);if(i>=0){coins.splice(i,1);got++;xp+=10;tone(850);msg("🪙 Moeda coletada! +10 XP")}collision();paint();stats()}
 function collision(){if(enemies.some(p=>p.x===px&&p.y===py)&&Date.now()-hit>900){life--;hit=Date.now();px=1;py=1;msg("💥 Inimigo! Você perdeu uma vida.");if(life<=0)modal("Fim de jogo","Suas vidas acabaram. Tente novamente!","Recomeçar",reset)}}
 function reset(){if(!confirm("Recomeçar tudo? Isto apaga o progresso das cinco fases neste navegador."))return;level=0;xp=0;life=3;completed=0;unlocked=0;saveProgress();setup()}
-function check(){const l=L[level],v=$("formula").value.toUpperCase().replace(/\s+/g,"").normalize("NFD").replace(/[\u0300-\u036f]/g,"");if(!v.startsWith("=")){msg("Comece com o sinal =");return}if(l.valid.some(s=>s.replace(/2/g,"7").toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"")===v)){if(!correct)xp+=30;correct=true;tone(1040);msg("✅ Fórmula correta! Resultado: "+l.ans+". Agora conclua a prática no Excel e pegue as moedas.");stats();paint()}else msg("❌ Confira as referências e os sinais. Use a dica se precisar.")}
-$("check").onclick=check;$("formula").addEventListener("keydown",e=>{if(e.key==="Enter")check()});$("hint").onclick=()=>msg("💡 "+L[level].hint);
+function check(){
+ const l=L[level],norm=v=>v.toUpperCase().replace(/\s+/g,"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/\$/g,"");
+ const v=norm($("formula").value).replace(/7/g,"2");
+ if(!v.startsWith("=")){msg("Comece com o sinal =. Clique em = e depois nas células.");return}
+ const options=l.valid.map(norm);
+ if(options.includes(v)){
+  if(!correct)xp+=30;correct=true;tone(1040);
+  msg("✅ Fórmula correta! Resultado: "+l.ans+". Agora abra o Excel real e repita usando as células da linha 7.");stats();paint();
+ }else{msg("❌ Ainda não está correto. Confira as células no mini-Excel e os sinais. Use a dica passo a passo.");}
+}
+$("check").onclick=check;$("formula").addEventListener("keydown",e=>{if(e.key==="Enter")check()});$("hint").onclick=()=>msg("💡 No mini-Excel: "+L[level].hint+". No arquivo real, utilize a linha 7.");
 $("confirmed").onchange=e=>{excel=e.target.checked;msg(excel?"✅ Prática confirmada. Quando pegar todas as moedas, vá até a porta!":"Prática ainda não confirmada.");stats();paint()};
 $("up").onclick=()=>step(0,-1);$("down").onclick=()=>step(0,1);$("left").onclick=()=>step(-1,0);$("right").onclick=()=>step(1,0);
 $("redo").onclick=setup;$("new").onclick=reset;document.addEventListener("keydown",e=>{if(document.activeElement===$("formula")||$("modal").open)return;let k={ArrowUp:[0,-1],w:[0,-1],ArrowDown:[0,1],s:[0,1],ArrowLeft:[-1,0],a:[-1,0],ArrowRight:[1,0],d:[1,0]};if(k[e.key]){e.preventDefault();step(...k[e.key])}});

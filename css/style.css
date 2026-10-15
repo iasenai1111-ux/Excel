@@ -1,0 +1,63 @@
+:root {
+  --senai-blue-900: #0F3A5F;
+  --senai-blue-600: #1479C9;
+  --senai-orange: #F5A623;
+  --senai-green: #2EAD72;
+  --senai-bg: #081b2d;
+  --panel: #102c45;
+  --panel-alt: #1b3d5a;
+  --text: #edf7ff;
+  --muted: #c7d9e6;
+  --wall: #2f526d;
+  --floor: #16314c;
+  --cell: #dfeaf4;
+  --shadow: rgba(0, 0, 0, 0.25);
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; min-height: 100%; font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; background: radial-gradient(circle at top, #214d7a 0%, #0a1b2d 45%, #060d1c 100%); color: var(--text); }
+body { min-height: 100vh; }
+button, input { font: inherit; }
+main { max-width: 1200px; margin: 0 auto; padding: 24px 16px 40px; }
+header { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px; }
+header h1 { margin: 0; font-size: clamp(2rem, 4vw, 3.3rem); letter-spacing: 0.04em; }
+header h1 span { color: var(--senai-green); }
+header .tag { background: rgba(20, 121, 201, 0.12); border: 1px solid rgba(20, 121, 201, 0.7); border-radius: 999px; padding: 8px 16px; font-weight: 700; color: #dfefff; }
+.app-shell { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(300px, 0.8fr); gap: 18px; }
+.panel { background: rgba(16, 44, 69, 0.92); border: 1px solid rgba(111, 164, 205, 0.4); border-radius: 20px; padding: 18px; box-shadow: 0 18px 36px rgba(0,0,0,0.2); }
+.stats { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+.stat-pill { display: inline-flex; align-items: center; gap: 5px; padding: 8px 10px; border-radius: 12px; background: rgba(19, 47, 74, 0.95); border: 1px solid rgba(110, 162, 198, 0.5); font-weight: 700; }
+canvas { display: block; width: 100%; height: auto; background: #0e2338; border: 2px solid rgba(62, 134, 180, 0.8); border-radius: 12px; }
+.controls { display: flex; justify-content: center; gap: 8px; margin-top: 16px; }
+.controls button { min-width: 52px; }
+button { cursor: pointer; background: var(--senai-green); color: #062f21; border: 0; border-radius: 10px; font-weight: 800; padding: 10px 12px; transition: transform 0.15s ease, filter 0.15s ease; }
+button:hover { filter: brightness(1.06); }
+button:active { transform: translateY(1px); }
+button.secondary { background: #2a5377; color: white; }
+button.primary { background: var(--senai-blue-600); color: white; }
+button.alt { background: #163e62; color: #eef7ff; }
+button:disabled { opacity: 0.4; cursor: not-allowed; }
+input[type="text"] { width: 100%; border-radius: 10px; border: 2px solid rgba(99, 176, 230, 0.9); background: rgba(6, 24, 38, 0.9); color: white; padding: 12px 14px; }
+input::placeholder { color: #9fc1d8; }
+.input-grid { display: grid; grid-template-columns: 1fr 180px; gap: 12px; margin-top: 12px; }
+.mission-box { background: rgba(22, 59, 86, 0.8); border-left: 4px solid var(--senai-green); border-radius: 10px; padding: 12px 14px; margin-bottom: 12px; }
+.mini-title { margin: 10px 0 8px; font-weight: 800; color: #bce7ff; }
+.mini-grid { display: grid; grid-template-columns: 32px repeat(5, minmax(0, 1fr)); gap: 2px; background: rgba(108, 138, 166, 0.8); border: 2px solid rgba(165, 197, 226, 0.75); border-radius: 10px; overflow: hidden; margin-bottom: 12px; }
+.cell { display: flex; align-items: center; justify-content: center; min-height: 38px; border: 0; background: #f4fbff; color: #1d3650; font-weight: 700; }
+.cell.header { background: #dfeaf5; }
+.cell.target { background: #ffe9a8; border: 2px solid #d79d13; }
+.cell.empty { background: #edf5fb; }
+.cell-button { padding: 0; cursor: pointer; }
+.formula-tools { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0 10px; }
+.formula-tools button { min-width: 42px; padding: 8px 10px; }
+.feedback { background: rgba(26, 52, 78, 0.9); border-radius: 10px; padding: 12px; line-height: 1.5; color: #e6f6ff; }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.download-block { background: rgba(245, 166, 35, 0.08); border-left: 4px solid var(--senai-orange); border-radius: 10px; padding: 12px; }
+.progress-bar { height: 12px; width: 100%; border-radius: 999px; background: rgba(27, 50, 72, 0.9); overflow: hidden; border: 1px solid rgba(132, 183, 223, 0.6); }
+.progress-fill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--senai-blue-600), var(--senai-green)); transition: width 0.25s ease; }
+small { color: var(--muted); line-height: 1.5; }
+@media (max-width: 880px) {
+  .app-shell { grid-template-columns: 1fr; }
+  .input-grid { grid-template-columns: 1fr; }
+  main { padding: 16px 12px 28px; }
+  header { flex-direction: column; align-items: flex-start; }
+}

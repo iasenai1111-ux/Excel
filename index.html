@@ -71,7 +71,7 @@ $("redo").onclick=setup;$("new").onclick=reset;document.addEventListener("keydow
 setInterval(()=>{if(blocked||$("modal").open)return;enemies.forEach((p,i)=>{let dirs=[[1,0],[0,1],[-1,0],[0,-1]],start=(Math.floor(Date.now()/1300)+i)%4;for(let j=0;j<4;j++){let d=dirs[(start+j)%4],nx=p.x+d[0],ny=p.y+d[1];if(free(nx,ny)&&!(nx===18&&ny===12)){p.x=nx;p.y=ny;break}}});collision();paint();stats()},1300);
 // Gera pasta de trabalho XML compatível com Excel, contendo cinco abas, sem bibliotecas externas.
 function xml(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
-const DELIVERY_FORM_URL=""; // Professor: cole aqui a URL pública de resposta do Google Forms (https://docs.google.com/forms/d/e/.../viewform).
+const DELIVERY_FORM_URL="https://forms.gle/g1E3pyj2e5XSVwBi9"; // Professor: cole aqui a URL pública de resposta do Google Forms (https://docs.google.com/forms/d/e/.../viewform).
 function info(){let name=$("studentName").value.trim(),group=$("studentClass").value.trim();if(name.length<3||group.length<2){alert("Antes de baixar, informe seu nome completo e sua turma.");return null}return {name,group}}
 function field(value,style=""){return '<Cell'+(style?' ss:StyleID="'+style+'"':'')+'><Data ss:Type="String">'+xml(value)+'</Data></Cell>'}
 function sheet(l,i){let val=l.values,rows='<Row ss:Height="34"><Cell ss:MergeAcross="4" ss:StyleID="Heading"><Data ss:Type="String">EXCEL QUEST | MISSÃO '+(i+1)+' - '+xml(l.title)+'</Data></Cell></Row>';

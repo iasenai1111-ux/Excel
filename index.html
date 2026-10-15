@@ -20,19 +20,35 @@ small{color:#b4d0e3;line-height:1.6}.phases{display:flex;flex-wrap:wrap;gap:8px;
 dialog{background:#142e47;color:white;border:2px solid #54eab1;border-radius:20px;max-width:430px;padding:24px;text-align:center}
 dialog::backdrop{background:#000b}dialog h2{margin-top:0}
 @media(max-width:850px){.layout{grid-template-columns:1fr}main{padding:10px}.panel{padding:12px}}
+
+/* Excel Quest 2.0 — interface */
+:root{color-scheme:dark}body{background:radial-gradient(circle at 15% 0%,#254c72 0%,#0c1d32 48%,#070f20 100%)}
+.panel{box-shadow:0 18px 40px #0005;backdrop-filter:blur(4px)}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid #f9ce69;outline-offset:3px}
+button:disabled{cursor:not-allowed;opacity:.45}
+.phase{cursor:pointer;transition:transform .15s ease,background .15s ease}
+.phase:hover:not(:disabled){transform:translateY(-2px)}
+.phase.on{box-shadow:0 0 0 2px #54eab1 inset}
+.phase.done{background:#184b56;border-color:#41b5aa}
+.progressTrack{height:12px;background:#16304d;border-radius:20px;overflow:hidden;margin:7px 0}
+.progressFill{height:100%;width:0;background:linear-gradient(90deg,#4bb6fd,#5ef2b2);transition:width .3s}
+#formula{margin-top:8px}#studentName,#studentClass{font:16px system-ui;width:100%;margin-top:6px}
+#studentName::placeholder,#studentClass::placeholder{color:#a5b7c9}
+details{margin-top:10px;padding:10px;border:1px solid #426580;border-radius:9px}summary{cursor:pointer;font-weight:700}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;animation:none!important}}
 </style></head><body><main>
 <header><div><h1>🎮 EXCEL <span>QUEST</span></h1><small>NÍVEL 1 • Aprenda jogando e praticando no Excel real</small></div><b class="tag" id="label">FASE 1 / 5</b></header>
-<section class="panel" style="margin-top:15px"><strong>👤 Identificação do aluno</strong><div class="actions"><label style="flex:2;min-width:210px">Nome completo<input id="studentName" type="text" placeholder="Seu nome completo" maxlength="90" autocomplete="name"></label><label style="flex:1;min-width:150px">Turma<input id="studentClass" type="text" placeholder="Ex.: Excel Básico A" maxlength="50"></label></div><small>Preencha antes de baixar a planilha. O nome e a turma ficarão no arquivo para o professor identificar sua atividade. Não publique sua planilha no GitHub.</small></section><div class="phases" id="phases"></div>
+<section class="panel" style="margin-top:15px"><strong>👤 Identificação do aluno</strong><div class="actions"><label style="flex:2;min-width:210px">Nome completo<input id="studentName" type="text" placeholder="Seu nome completo" maxlength="90" autocomplete="name"></label><label style="flex:1;min-width:150px">Turma<input id="studentClass" type="text" placeholder="Ex.: Excel Básico A" maxlength="50"></label></div><small>Preencha antes de baixar a planilha. O nome e a turma ficarão no arquivo para o professor identificar sua atividade. Não publique sua planilha no GitHub.</small></section><section class="panel" style="margin-top:15px"><div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap"><strong>🗺️ Mapa da aventura — escolha uma fase liberada</strong><span id="pct">0% completo</span></div><div class="progressTrack"><div id="progressFill" class="progressFill"></div></div><div class="phases" id="phases" aria-label="Selecionar fase"></div><small>O progresso fica salvo somente neste navegador. Compartilhar o computador ou limpar os dados pode apagar o avanço. Cada aluno deve usar seu próprio perfil do navegador.</small></section>
 <div class="layout"><section class="panel"><div class="stats"><span id="xp">⭐ 0 XP</span><span id="coins">🪙 0/3</span><span id="lives">❤️❤️❤️</span><span id="door">🔒 Saída fechada</span></div>
 <canvas id="map" width="640" height="448" aria-label="Labirinto do jogo com jogador, moedas, inimigos e saída"></canvas>
 <div class="controls"><button class="alt" id="left">⬅</button><button class="alt" id="up">⬆</button><button class="alt" id="down">⬇</button><button class="alt" id="right">➡</button></div>
 <small>Movimente com setas ou W A S D. 🧑‍🚀 Você · 🪙 Moedas · 👾 Inimigos · 🚪 Porta. Recolha as moedas, resolva a fórmula e faça a atividade no Excel.</small>
-<div class="actions"><button class="alt" id="redo">↻ Reiniciar fase</button><button class="alt" id="new">⟲ Novo jogo</button></div></section>
+<div class="actions"><button class="alt" id="redo">↻ Reiniciar fase</button><button class="alt" id="new">⟲ Novo jogo</button><button class="alt" id="sound">🔊 Som: ligado</button></div><small id="saveState" role="status">Progresso local ativo</small></section>
 <aside class="panel"><h2 style="margin-top:0">🧠 Terminal das fórmulas</h2><div id="mission" class="notice green"></div>
 <table id="table"></table>
 <label for="formula">Digite a fórmula na célula marcada:</label><input id="formula" type="text" placeholder="=B2+C2" spellcheck="false">
 <div class="actions"><button id="check">✓ Verificar</button><button class="alt" id="hint">💡 Dica</button></div>
-<div id="feedback" class="notice">Complete o desafio e as moedas para avançar.</div>
+<div id="feedback" class="notice" aria-live="polite">Complete o desafio e as moedas para avançar.</div>
 <div class="notice gold"><strong>🖥️ Prática obrigatória no Excel real</strong>
 <p><a href="#" class="download" id="download">⬇ Baixar planilha do aluno (.xls)</a></p>
 <div id="steps"></div><label><input id="confirmed" type="checkbox"> Fiz a fórmula no Excel, conferi o resultado e salvei o arquivo.</label>
@@ -48,27 +64,32 @@ const L=[
 {title:"Chefão dos descontos",description:"Headset por R$200 com 15% de desconto. Calcule o preço final em D2.",values:[200,"15%"],heads:["A","B","C","D"],ans:"170",valid:["=B2*(1-C2)","=B2-B2*C2","=B2*(100%-C2)"],hint:"Digite =B2*(1-C2)",formula:"=B2*(1-C2)",cell:"D2",coins:6,enemy:2}];
 const rows=["####################","#P.................#","#..###......###....#","#.......#..........#","#.......#..#.......#","#..##......#.......#","#..........#.......#","#.....#............#","#.....#...#........#","#...........##.....#","#.......#..........#","#...........#......#","#.................D#","####################"];
 const $=id=>document.getElementById(id),c=$("map"),ctx=c.getContext("2d");let level=0,xp=0,life=3,px=1,py=1,coins=[],enemies=[],got=0,correct=false,excel=false,blocked=false,hit=0;
+const KEY="excelquest.v2";let unlocked=0,completed=0,soundOn=true;let audioCtx;
+function loadProgress(){try{const p=JSON.parse(localStorage.getItem(KEY)||"null");if(!p||!Number.isInteger(p.unlocked))return;unlocked=Math.max(0,Math.min(4,p.unlocked));completed=Math.max(0,Math.min(5,Number(p.completed)||0));level=Math.max(0,Math.min(unlocked,Number(p.level)||0));xp=Math.max(0,Math.min(100000,Number(p.xp)||0));life=3;$("studentName").value=String(p.name||"").slice(0,90);$("studentClass").value=String(p.group||"").slice(0,50);soundOn=p.sound!==false}catch(e){$("saveState").textContent="Não foi possível ler o progresso anterior."}}
+function saveProgress(){try{localStorage.setItem(KEY,JSON.stringify({level,unlocked,completed,xp,name:$("studentName").value.trim(),group:$("studentClass").value.trim(),sound:soundOn}))}catch(e){$("saveState").textContent="⚠️ Este navegador não permite salvar progresso."}}
+function tone(freq=650){if(!soundOn)return;try{audioCtx=audioCtx||new(window.AudioContext||window.webkitAudioContext)();const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type="sine";o.frequency.value=freq;g.gain.value=.035;o.connect(g);g.connect(audioCtx.destination);o.start();o.stop(audioCtx.currentTime+.09)}catch(e){}}
+
 function free(x,y){return y>=0&&y<14&&x>=0&&x<20&&rows[y][x]!=="#"}
 function setup(){let l=L[level];px=1;py=1;correct=false;excel=false;got=0;blocked=false;hit=0;$("confirmed").checked=false;$("formula").value="";let spots=[];for(let y=1;y<13;y++)for(let x=1;x<19;x++)if(free(x,y)&&(x>3||y>4)&&!(x===18&&y===12))spots.push({x,y});spots.sort((a,b)=>((a.x*19+a.y*31+level*41)%127)-((b.x*19+b.y*31+level*41)%127));coins=spots.slice(0,l.coins);enemies=spots.slice(l.coins,l.coins+l.enemy);
-$("mission").innerHTML="<b>FASE "+(level+1)+" — "+l.title+"</b><p>"+l.description+"</p>";
+$("mission").innerHTML="<b>FASE "+(level+1)+" — "+l.title+"</b><p>"+l.description.replaceAll("D2",l.values.length===3?"E7":"D7").replaceAll("E2","E7")+"</p>";
 $("table").innerHTML="<tr>"+l.head.map(h=>"<th>"+h+"</th>").join("")+"</tr><tr><td>2</td>"+l.values.map(v=>"<td>"+v+"</td>").join("")+'<td class="cell">?</td></tr>';
 $("steps").innerHTML="<b>Passo a passo — FASE "+(level+1)+"</b><ol><li>Abra o arquivo baixado no Excel e selecione a aba <b>FASE "+(level+1)+"</b>.</li><li>Confira os valores nas células "+(l.values.length===3?"B7, C7 e D7":"B7 e C7")+".</li><li>Clique em <b>"+(l.values.length===3?"E7":"D7")+"</b> e digite <code>"+l.formula+"</code>.</li><li>Pressione <b>Enter</b> e veja se aparece <b>"+l.ans+"</b>.</li><li>Salve usando <b>Ctrl+S</b> e marque a confirmação abaixo.</li></ol>";
 $("feedback").textContent="Pegue as moedas, resolva a fórmula e complete a prática no Excel.";$("label").textContent="FASE "+(level+1)+" / 5";paint();stats()}
-function stats(){let l=L[level],open=correct&&excel&&got===l.coins;$("xp").textContent="⭐ "+xp+" XP";$("coins").textContent="🪙 "+got+"/"+l.coins;$("lives").textContent="❤️".repeat(Math.max(life,0))+"🖤".repeat(3-Math.max(life,0));$("door").textContent=open?"🔓 Porta liberada":"🔒 Porta fechada";$("phases").innerHTML=L.map((it,i)=>'<div class="phase '+(i===level?"on":i>level?"lock":"")+'">'+(i<level?"✅":i===level?"▶":"🔒")+' Fase '+(i+1)+'</div>').join("")}
+function stats(){let l=L[level],open=correct&&excel&&got===l.coins;$("xp").textContent="⭐ "+xp+" XP";$("coins").textContent="🪙 "+got+"/"+l.coins;$("lives").textContent="❤️".repeat(Math.max(life,0))+"🖤".repeat(3-Math.max(life,0));$("door").textContent=open?"🔓 Porta liberada":"🔒 Porta fechada";$("phases").innerHTML=L.map((it,i)=>'<button type="button" data-phase="'+i+'" class="phase '+(i===level?"on":i>=completed?"":"done")+' '+(i>unlocked?"lock":"")+'" '+(i>unlocked?'disabled title="Conclua a fase anterior"':'')+'>'+(i<completed?"✅":i===level?"▶":i>unlocked?"🔒":"🎮")+' Fase '+(i+1)+'</button>').join("");$("pct").textContent=Math.round(completed/L.length*100)+"% completo";$("progressFill").style.width=(completed/L.length*100)+"%"}
 function emoji(ch,x,y){ctx.font="23px system-ui";ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(ch,x*32+16,y*32+16)}
 function paint(){ctx.clearRect(0,0,640,448);for(let y=0;y<14;y++)for(let x=0;x<20;x++){ctx.fillStyle=rows[y][x]==="#"?"#30516b":(x+y)%2?"#0e2539":"#172e43";ctx.fillRect(x*32,y*32,32,32);if(rows[y][x]==="#"){ctx.fillStyle="#456a83";ctx.fillRect(x*32+2,y*32+2,28,3)}}let open=correct&&excel&&got===L[level].coins;emoji(open?"🚪":"🔒",18,12);coins.forEach(p=>emoji("🪙",p.x,p.y));enemies.forEach(p=>emoji("👾",p.x,p.y));emoji("🧑‍🚀",px,py)}
 function msg(s){$("feedback").textContent=s}
 function modal(title,body,btn,fn){blocked=true;$("mt").textContent=title;$("mb").textContent=body;$("continue").textContent=btn;$("continue").onclick=()=>{$("modal").close();fn()};$("modal").showModal()}
-function win(){xp+=50;if(level===4)modal("🏆 Você venceu!", "Nível Básico concluído com "+xp+" XP! Mostre sua planilha ao professor.","Jogar novamente",reset);else modal("🎉 Fase desbloqueada!","Você concluiu a fase "+(level+1)+". Agora a próxima fase está disponível. +50 XP.","Ir para fase "+(level+2),()=>{level++;setup()})}
-function step(dx,dy){if(blocked||$("modal").open)return;let nx=px+dx,ny=py+dy;if(!free(nx,ny))return;if(nx===18&&ny===12){if(correct&&excel&&got===L[level].coins)win();else msg("🔒 Ainda faltam moedas, fórmula ou prática no Excel real.");return}px=nx;py=ny;let i=coins.findIndex(p=>p.x===px&&p.y===py);if(i>=0){coins.splice(i,1);got++;xp+=10;msg("🪙 Moeda coletada! +10 XP")}collision();paint();stats()}
+function win(){xp+=50;completed=Math.max(completed,level+1);unlocked=Math.max(unlocked,Math.min(4,level+1));saveProgress();stats();tone(1200);if(level===4)modal("🏆 Você venceu!", "Nível Básico concluído com "+xp+" XP! Mostre sua planilha ao professor.","Jogar novamente",reset);else modal("🎉 Fase desbloqueada!","Você concluiu a fase "+(level+1)+". Agora a próxima fase está disponível. +50 XP.","Ir para fase "+(level+2),()=>{level++;saveProgress();setup()})}
+function step(dx,dy){if(blocked||$("modal").open)return;let nx=px+dx,ny=py+dy;if(!free(nx,ny))return;if(nx===18&&ny===12){if(correct&&excel&&got===L[level].coins)win();else msg("🔒 Ainda faltam moedas, fórmula ou prática no Excel real.");return}px=nx;py=ny;let i=coins.findIndex(p=>p.x===px&&p.y===py);if(i>=0){coins.splice(i,1);got++;xp+=10;tone(850);msg("🪙 Moeda coletada! +10 XP")}collision();paint();stats()}
 function collision(){if(enemies.some(p=>p.x===px&&p.y===py)&&Date.now()-hit>900){life--;hit=Date.now();px=1;py=1;msg("💥 Inimigo! Você perdeu uma vida.");if(life<=0)modal("Fim de jogo","Suas vidas acabaram. Tente novamente!","Recomeçar",reset)}}
-function reset(){level=0;xp=0;life=3;setup()}
-function check(){const l=L[level],v=$("formula").value.toUpperCase().replace(/\s+/g,"").normalize("NFD").replace(/[\u0300-\u036f]/g,"");if(!v.startsWith("=")){msg("Comece com o sinal =");return}if(l.valid.some(s=>s.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"")===v)){if(!correct)xp+=30;correct=true;msg("✅ Fórmula correta! Resultado: "+l.ans+". Agora conclua a prática no Excel e pegue as moedas.");stats();paint()}else msg("❌ Confira as referências e os sinais. Use a dica se precisar.")}
+function reset(){if(!confirm("Recomeçar tudo? Isto apaga o progresso das cinco fases neste navegador."))return;level=0;xp=0;life=3;completed=0;unlocked=0;saveProgress();setup()}
+function check(){const l=L[level],v=$("formula").value.toUpperCase().replace(/\s+/g,"").normalize("NFD").replace(/[\u0300-\u036f]/g,"");if(!v.startsWith("=")){msg("Comece com o sinal =");return}if(l.valid.some(s=>s.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"")===v)){if(!correct)xp+=30;correct=true;tone(1040);msg("✅ Fórmula correta! Resultado: "+l.ans+". Agora conclua a prática no Excel e pegue as moedas.");stats();paint()}else msg("❌ Confira as referências e os sinais. Use a dica se precisar.")}
 $("check").onclick=check;$("formula").addEventListener("keydown",e=>{if(e.key==="Enter")check()});$("hint").onclick=()=>msg("💡 "+L[level].hint);
 $("confirmed").onchange=e=>{excel=e.target.checked;msg(excel?"✅ Prática confirmada. Quando pegar todas as moedas, vá até a porta!":"Prática ainda não confirmada.");stats();paint()};
 $("up").onclick=()=>step(0,-1);$("down").onclick=()=>step(0,1);$("left").onclick=()=>step(-1,0);$("right").onclick=()=>step(1,0);
 $("redo").onclick=setup;$("new").onclick=reset;document.addEventListener("keydown",e=>{if(document.activeElement===$("formula")||$("modal").open)return;let k={ArrowUp:[0,-1],w:[0,-1],ArrowDown:[0,1],s:[0,1],ArrowLeft:[-1,0],a:[-1,0],ArrowRight:[1,0],d:[1,0]};if(k[e.key]){e.preventDefault();step(...k[e.key])}});
-setInterval(()=>{if(blocked||$("modal").open)return;enemies.forEach((p,i)=>{let dirs=[[1,0],[0,1],[-1,0],[0,-1]],start=(Math.floor(Date.now()/1300)+i)%4;for(let j=0;j<4;j++){let d=dirs[(start+j)%4],nx=p.x+d[0],ny=p.y+d[1];if(free(nx,ny)&&!(nx===18&&ny===12)){p.x=nx;p.y=ny;break}}});collision();paint();stats()},1300);
+setInterval(()=>{if(blocked||$("modal").open||document.hidden)return;enemies.forEach((p,i)=>{let dirs=[[1,0],[0,1],[-1,0],[0,-1]],start=(Math.floor(Date.now()/1300)+i)%4;for(let j=0;j<4;j++){let d=dirs[(start+j)%4],nx=p.x+d[0],ny=p.y+d[1];if(free(nx,ny)&&!(nx===18&&ny===12)){p.x=nx;p.y=ny;break}}});collision();paint();stats()},1300);
 // Gera pasta de trabalho XML compatível com Excel, contendo cinco abas, sem bibliotecas externas.
 function xml(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
 const DELIVERY_FORM_URL="https://forms.gle/g1E3pyj2e5XSVwBi9"; // Professor: cole aqui a URL pública de resposta do Google Forms (https://docs.google.com/forms/d/e/.../viewform).
@@ -89,5 +110,9 @@ function download(){const i=info();if(!i)return;student=i;let w='<?xml version="
 let a=document.createElement("a"),url=URL.createObjectURL(new Blob([w],{type:"application/vnd.ms-excel"}));a.href=url;a.download="Excel_Quest_"+i.name.normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-zA-Z0-9]+/g,"_").slice(0,55)+".xls";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),3000)}
 $("send").onclick=()=>{if(!info())return;if(!DELIVERY_FORM_URL){alert("O professor ainda precisa configurar o formulário de envio do Google Drive. Salve a planilha até o link estar disponível.");return}window.open(DELIVERY_FORM_URL,"_blank","noopener,noreferrer")};
 if(DELIVERY_FORM_URL){$("sendStatus").textContent="Ao abrir o formulário, informe seu nome e turma e anexe sua planilha. Clique em Enviar no formulário."}
-$("download").onclick=e=>{e.preventDefault();download()};setup()})();
+$("download").onclick=e=>{e.preventDefault();download()};
+$("phases").addEventListener("click",e=>{let b=e.target.closest("[data-phase]");if(!b)return;let n=Number(b.dataset.phase);if(!Number.isInteger(n)||n>unlocked||n<0||n===level)return;level=n;life=3;saveProgress();setup();msg("Fase "+(n+1)+" selecionada. Os desafios da fase são reiniciados.")});
+$("studentName").addEventListener("change",saveProgress);$("studentClass").addEventListener("change",saveProgress);
+$("sound").onclick=()=>{soundOn=!soundOn;$("sound").textContent=soundOn?"🔊 Som: ligado":"🔇 Som: desligado";saveProgress();tone()};
+loadProgress();$("sound").textContent=soundOn?"🔊 Som: ligado":"🔇 Som: desligado";setup()})();
 </script></body></html>
